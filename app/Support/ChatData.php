@@ -74,7 +74,7 @@ class ChatData
             'avatar_url' => $conversation->type === 'group' ? null : ($partner['avatar_url'] ?? null), 'partner' => $partner,
             'member_count' => $conversation->chatParticipants->count(), 'revision' => $conversation->revision,
             'last_message_id' => $conversation->last_message_id, 'last_message_at' => $conversation->last_message_at?->toIso8601String(),
-            'preview' => $last ? Str::limit($last->body ?: ($last->message_type === 'image' ? 'Đã gửi ảnh' : ($last->metadata['math'] ?? false ? 'Đã gửi công thức' : 'Đã gửi tệp')), 160) : 'Chưa có tin nhắn',
+            'preview' => $last ? Str::limit($last->body ?: ($last->message_type === 'image' ? 'Đã gửi ảnh' : ($last->metadata['sticker'] ?? false ? 'Đã gửi nhãn dán' : ($last->metadata['math'] ?? false ? 'Đã gửi công thức' : 'Đã gửi tệp'))), 160) : 'Chưa có tin nhắn',
             'last_sender_user_id' => $last?->sender_user_id, 'unread_count' => (int) ($conversation->unread_count ?? 0),
             'last_read_message_id' => $own?->last_read_message_id ?? 0,
             'read_receipts' => $conversation->chatParticipants->map(fn ($p) => ['user_id' => $p->user_id, 'last_read_message_id' => $p->last_read_message_id])->all()];

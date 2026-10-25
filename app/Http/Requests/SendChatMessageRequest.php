@@ -24,8 +24,11 @@ class SendChatMessageRequest extends FormRequest
     public function rules(): array
     {
         return ['client_id' => ['required', 'uuid'], 'body' => ['nullable', 'string', 'max:4000'],
-            'metadata' => ['nullable', 'array:math,formula,reply_to_id'], 'metadata.math' => ['sometimes', 'boolean'],
+            'metadata' => ['nullable', 'array:math,formula,reply_to_id,sticker'], 'metadata.math' => ['sometimes', 'boolean'],
             'metadata.formula' => ['nullable', 'string', 'max:4000'], 'metadata.reply_to_id' => ['nullable', 'integer', 'min:1'],
+            'metadata.sticker' => ['nullable', 'array'], 'metadata.sticker.id' => ['nullable', 'string', 'max:50'],
+            'metadata.sticker.name' => ['nullable', 'string', 'max:100'], 'metadata.sticker.emoji' => ['nullable', 'string', 'max:50'],
+            'metadata.sticker.category' => ['nullable', 'string', 'max:50'],
             'files' => ['nullable', 'array', 'max:3'],
             'files.*' => ['required', 'file', 'max:10240', 'extensions:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,zip,txt', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,zip,txt']];
     }
@@ -36,8 +39,8 @@ class SendChatMessageRequest extends FormRequest
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
-            if (! trim((string) $this->input('body')) && ! $this->hasFile('files') && ! trim((string) $this->input('metadata.formula'))) {
-                $validator->errors()->add('body', 'Vui lòng nhập tin nhắn, công thức hoặc chọn tệp.');
+            if (! trim((string) $this->input('body')) && ! $this->hasFile('files') && ! trim((string) $this->input('metadata.formula')) && ! $this->input('metadata.sticker')) {
+                $validator->errors()->add('body', 'Vui lòng nhập tin nhắn, nhãn dán hoặc chọn tệp.');
             }
             foreach ($this->file('files', []) as $file) {
                 if ($file->isValid() && str_starts_with($file->getMimeType() ?? '', 'image/')) {
