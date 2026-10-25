@@ -67,3 +67,5 @@ BE: `php artisan test --filter=RealtimeChatTest`. FE: `npm run test:chat`, `npm 
 Presence channel của Pusher giới hạn 100 thành viên; khi triển khai vượt quy mô này cần chia presence theo phạm vi hoặc đổi cơ chế presence. Tham khảo [Pusher Presence](https://pusher.com/docs/channels/using_channels/presence-channels/). Online thể hiện kết nối WebSocket, phát hiện offline theo timeout của Pusher. Chat nhóm hiện hỗ trợ tạo, nhắn, cảm xúc, thành viên và đọc; chưa có quản trị thêm/xóa thành viên sau khi tạo.
 
 Optimistic UI xuất hiện ngay; thời gian mạng, vùng Pusher, upload và các HTTP publish đồng bộ quyết định độ trễ nhận, không bảo đảm dưới 100 ms. Client events phải bật trên Dashboard: [Pusher Events](https://pusher.com/docs/channels/using_channels/events/).
+
+Avatar công khai trong chat được đọc qua `/api/media/avatars/{filename}` để có CORS từ Laravel, kể cả khi server bỏ qua middleware đối với `/storage/*`. Chỉ phục vụ ảnh trong disk public/avatars; không phục vụ tệp chat hoặc xác minh riêng tư. Endpoint có quota riêng để tải ảnh không chiếm quota API nghiệp vụ.

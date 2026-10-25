@@ -28,6 +28,10 @@ $authRoutes = function () {
 Route::prefix('auth')->group($authRoutes);
 Route::group([], $authRoutes);
 
+Route::get('/media/avatars/{filename}', \App\Http\Controllers\Api\PublicAvatarController::class)
+    ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
+    ->withoutMiddleware('throttle:api')->middleware('throttle:public-avatars');
+
 Route::get('/administrative-areas', [AdministrativeAreaController::class, 'index']);
 Route::controller(\App\Http\Controllers\Api\MasterDataController::class)->group(function () {
     Route::get('/subjects', 'subjects');

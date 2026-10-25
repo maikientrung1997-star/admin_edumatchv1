@@ -24,6 +24,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('public-avatars', fn (Request $request) => Limit::perMinute(240)->by('public-avatars:'.$request->ip()));
         foreach (['send' => 60, 'create' => 20, 'search' => 60, 'typing' => 30] as $action => $limit) {
             RateLimiter::for('chat-'.$action, fn (Request $request) => Limit::perMinute($limit)->by('chat-'.$action.':'.($request->user()?->id ?? $request->ip())));
         }
