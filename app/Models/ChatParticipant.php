@@ -18,6 +18,7 @@ class ChatParticipant extends Model
         'last_read_at',
         'is_muted',
         'joined_at',
+        'notes', 'role', 'last_read_message_id',
     ];
 
     protected $attributes = [
@@ -26,6 +27,7 @@ class ChatParticipant extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'last_read_message_id' => 'integer',
         'conversation_id' => 'integer',
         'user_id' => 'integer',
         'last_read_at' => 'datetime',

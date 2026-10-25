@@ -20,6 +20,7 @@ class ChatMessage extends Model
         'message_type',
         'body',
         'sent_at',
+        'metadata', 'client_id', 'revision',
     ];
 
     protected $attributes = [
@@ -28,6 +29,7 @@ class ChatMessage extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'metadata' => 'array', 'revision' => 'integer',
         'conversation_id' => 'integer',
         'sender_user_id' => 'integer',
         'sent_at' => 'datetime',
@@ -49,5 +51,10 @@ class ChatMessage extends Model
     public function chatAttachments(): HasMany
     {
         return $this->hasMany(ChatAttachment::class, 'message_id');
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(ChatMessageReaction::class, 'message_id');
     }
 }

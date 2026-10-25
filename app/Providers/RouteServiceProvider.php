@@ -24,6 +24,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('public-avatars', fn (Request $request) => Limit::perMinute(240)->by('public-avatars:'.$request->ip()));
+        foreach (['send' => 60, 'create' => 20, 'search' => 60, 'typing' => 30] as $action => $limit) {
+            RateLimiter::for('chat-'.$action, fn (Request $request) => Limit::perMinute($limit)->by('chat-'.$action.':'.($request->user()?->id ?? $request->ip())));
+        }
         RateLimiter::for('google-challenge', fn (Request $request) => Limit::perMinute(30)->by('google-challenge:'.$request->ip()));
         RateLimiter::for('google-auth', fn (Request $request) => Limit::perMinute(15)->by('google-auth:'.$request->ip()));
         RateLimiter::for('registration-otp-send', function (Request $request) {
@@ -47,6 +51,10 @@ class RouteServiceProvider extends ServiceProvider
             return [Limit::perMinute(10)->by('otp-verify:'.$request->ip().':'.$resetIdentity($request))];
         });
         RateLimiter::for('api', function (Request $request) {
+            if ($request->is('api/chat/*')) {
+                return Limit::perMinute(240)->by('chat-api:'.($request->user()?->id ?? $request->ip()));
+            }
+
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 

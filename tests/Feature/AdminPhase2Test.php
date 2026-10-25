@@ -45,9 +45,9 @@ class AdminPhase2Test extends IsolatedMysqlTestCase
 
     private function docs(string $role = 'teacher'): array
     {
-        $types = $role === 'center' ? ['business_registration', 'education_license', 'identity_front', 'identity_back'] : ['degree', 'identity_front', 'identity_back'];
+        $types = $role === 'center' ? ['business_registration'] : ['degree', 'identity_front', 'identity_back'];
 
-        return array_map(fn ($type) => ['document_type' => $type, 'document_name' => 'Tài liệu '.$type, 'issuing_authority' => 'Đơn vị cấp', 'issued_year' => 2020, 'file' => UploadedFile::fake()->image($type.'.jpg')], $types);
+        return array_map(fn ($type) => ['document_type' => $type, 'document_name' => 'Tài liệu '.$type, 'issuing_authority' => 'Đơn vị cấp', 'issued_year' => ($role === 'center' ? null : 2020), 'file' => UploadedFile::fake()->image($type.'.jpg')], $types);
     }
 
     private function api(User $user, string $method, string $path, array $data = [])
@@ -61,7 +61,13 @@ class AdminPhase2Test extends IsolatedMysqlTestCase
     private function submission(User $user): VerificationRequest
     {
         Storage::fake('verification');
-        $id = $this->api($user, 'POST', '/api/verifications', ['documents' => $this->docs($user->role)])->assertCreated()->json('request.id');
+        $data = ['documents' => $this->docs($user->role)];
+        if ($user->role === 'center') {
+            $data['center_details'] = ['center_name' => 'Trung tâm thử nghiệm', 'training_field' => 'Ngoại ngữ', 'training_address' => 'Địa chỉ đào tạo QA',
+                'company_name' => 'Công ty QA', 'company_address' => 'Địa chỉ công ty QA', 'tax_code' => '0123456789',
+                'representative_name' => 'Đại diện QA', 'representative_phone' => '0981234567'];
+        }
+        $id = $this->api($user, 'POST', '/api/verifications', $data)->assertCreated()->json('request.id');
 
         return VerificationRequest::findOrFail($id);
     }

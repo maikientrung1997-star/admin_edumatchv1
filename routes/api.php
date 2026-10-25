@@ -28,6 +28,10 @@ $authRoutes = function () {
 Route::prefix('auth')->group($authRoutes);
 Route::group([], $authRoutes);
 
+Route::get('/media/avatars/{filename}', \App\Http\Controllers\Api\PublicAvatarController::class)
+    ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
+    ->withoutMiddleware('throttle:api')->middleware('throttle:public-avatars');
+
 Route::get('/administrative-areas', [AdministrativeAreaController::class, 'index']);
 Route::controller(\App\Http\Controllers\Api\MasterDataController::class)->group(function () {
     Route::get('/subjects', 'subjects');
@@ -40,6 +44,23 @@ Route::controller(\App\Http\Controllers\Api\MasterDataController::class)->group(
     Route::get('/providers/{user}', 'provider');
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function () {
+    Route::prefix('chat')->controller(\App\Http\Controllers\Api\ChatController::class)->group(function () {
+        Route::get('config', 'config');
+        Route::get('users/search', 'search')->middleware('throttle:chat-search');
+        Route::get('conversations', 'index');
+        Route::post('conversations', 'store')->middleware('throttle:chat-create');
+        Route::post('groups', 'group')->middleware('throttle:chat-create');
+        Route::get('conversations/{conversation}', 'show');
+        Route::get('conversations/{conversation}/messages', 'messages');
+        Route::post('conversations/{conversation}/messages', 'send')->middleware('throttle:chat-send');
+        Route::post('conversations/{conversation}/read', 'read');
+        Route::post('conversations/{conversation}/typing', 'typing')->middleware('throttle:chat-typing');
+        Route::get('conversations/{conversation}/media', 'media');
+        Route::put('conversations/{conversation}/notes', 'notes');
+        Route::get('messages/{message}', 'message');
+        Route::post('messages/{message}/reactions', 'react')->middleware('throttle:chat-send');
+        Route::get('attachments/{attachment}', 'attachment');
+    });
     Route::get('/verifications', [\App\Http\Controllers\Api\VerificationController::class, 'index']);
     Route::post('/verifications', [\App\Http\Controllers\Api\VerificationController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/verifications/documents/{document}', [\App\Http\Controllers\Api\VerificationController::class, 'document']);
