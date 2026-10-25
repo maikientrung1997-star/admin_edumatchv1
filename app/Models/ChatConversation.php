@@ -21,6 +21,7 @@ class ChatConversation extends Model
         'post_id',
         'status',
         'last_message_at',
+        'type', 'title', 'avatar_path', 'direct_key', 'created_by_user_id', 'last_message_id', 'revision',
     ];
 
     protected $attributes = [
@@ -29,6 +30,7 @@ class ChatConversation extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'last_message_id' => 'integer', 'created_by_user_id' => 'integer', 'revision' => 'integer',
         'student_user_id' => 'integer',
         'teacher_user_id' => 'integer',
         'center_id' => 'integer',
@@ -66,6 +68,11 @@ class ChatConversation extends Model
     public function chatMessages(): HasMany
     {
         return $this->hasMany(ChatMessage::class, 'conversation_id');
+    }
+
+    public function lastMessage(): BelongsTo
+    {
+        return $this->belongsTo(ChatMessage::class, 'last_message_id');
     }
 
     public function participants(): BelongsToMany

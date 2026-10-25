@@ -29,6 +29,10 @@ return [
     */
 
     'disks' => [
+        'chat' => [
+            'driver' => 'local', 'root' => storage_path('app/chat_attachments'),
+            'visibility' => 'private', 'throw' => true,
+        ],
 
         'verification' => [
             'driver' => 'local',
