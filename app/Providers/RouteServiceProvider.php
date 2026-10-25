@@ -24,6 +24,8 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('google-challenge', fn (Request $request) => Limit::perMinute(30)->by('google-challenge:'.$request->ip()));
+        RateLimiter::for('google-auth', fn (Request $request) => Limit::perMinute(15)->by('google-auth:'.$request->ip()));
         RateLimiter::for('registration-otp-send', function (Request $request) {
             $email = $request->input('email');
             $identity = hash('sha256', is_string($email) ? mb_strtolower(trim($email)) : '');

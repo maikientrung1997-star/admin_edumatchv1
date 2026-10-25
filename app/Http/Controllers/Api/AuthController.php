@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GoogleAuthRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterCenterRequest;
 use App\Http\Requests\RegisterStudentRequest;
 use App\Http\Requests\RegisterTeacherRequest;
 use App\Http\Requests\SendRegistrationOtpRequest;
 use App\Models\User;
+use App\Services\GoogleAuthService;
 use App\Services\RegistrationOtpService;
 use App\Support\VietnamesePhone;
 use Illuminate\Database\QueryException;
@@ -22,6 +24,21 @@ use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
+    public function googleChallenge(GoogleAuthService $google): JsonResponse
+    {
+        return response()->json($google->challenge())->header('Cache-Control', 'no-store');
+    }
+
+    public function google(GoogleAuthRequest $request, GoogleAuthService $google): JsonResponse
+    {
+        $data = $request->validated();
+        [$user, $token, $created] = $google->authenticate($data['credential'], $data['nonce'], $data['role'] ?? 'student', $data['password'] ?? null);
+
+        $response = $this->tokenResponse($user, $token, $created ? 'Tạo tài khoản bằng Google thành công.' : 'Đăng nhập bằng Google thành công.');
+
+        return $response->setData($response->getData(true) + ['is_new_user' => $created]);
+    }
+
     public function sendRegistrationOtp(SendRegistrationOtpRequest $request, RegistrationOtpService $otpService): JsonResponse
     {
         $data = $request->validated();
