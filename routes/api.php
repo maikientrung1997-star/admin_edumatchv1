@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 // Keep both /api/auth/* and legacy /api/* clients on the same implementation.
 $authRoutes = function () {
+    Route::get('/google/challenge', [AuthController::class, 'googleChallenge'])->middleware('throttle:google-challenge');
+    Route::post('/google', [AuthController::class, 'google'])->middleware('throttle:google-auth');
     Route::post('/register/send-otp', [AuthController::class, 'sendRegistrationOtp'])->middleware('throttle:registration-otp-send');
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

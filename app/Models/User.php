@@ -22,6 +22,7 @@ class User extends Authenticatable
         'role',
         'name',
         'email',
+        'google_id',
         'phone',
         'password',
         'avatar_path',
@@ -45,6 +46,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
     ];
 
     protected $appends = ['avatar_url'];

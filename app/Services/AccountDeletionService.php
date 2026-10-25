@@ -27,6 +27,7 @@ class AccountDeletionService
                 // users_contact_check requires one contact even on deleted rows.
                 'email' => 'deleted-'.$user->id.'-'.Str::uuid().'@deleted.invalid',
                 'phone' => null, 'password' => Str::random(64),
+                'google_id' => null,
                 'remember_token' => null, 'email_verified_at' => null, 'phone_verified_at' => null,
                 'status' => 'blocked', 'is_active' => false,
             ])->save();
