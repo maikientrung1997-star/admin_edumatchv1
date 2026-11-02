@@ -32,7 +32,8 @@ class UpdateProfileRequest extends FormRequest
             }
         } elseif ($role === 'teacher') {
             $rules['date_of_birth'] = ['sometimes', 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'];
-            $rules['headline'] = ['sometimes', 'nullable', 'string', 'max:200'];
+            $rules['headline'] = ['sometimes', 'nullable', 'string'];
+            $rules['experience'] = ['sometimes', 'nullable', 'string'];
             $rules['experience_years'] = ['sometimes', 'nullable', 'integer', 'min:0', 'max:60'];
             $rules['teaching_field'] = ['sometimes', 'nullable', 'string', 'max:40'];
         } elseif ($role === 'center') {

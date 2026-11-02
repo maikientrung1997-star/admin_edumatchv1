@@ -84,6 +84,7 @@ class AuthController extends Controller
                     $user->teacherProfile()->create([
                         'full_name' => $user->name, 'date_of_birth' => $data['date_of_birth'],
                         'headline' => $data['headline'] ?? null, 'teaching_field' => $data['teaching_field'] ?? null, 'bio' => $data['bio'] ?? null,
+                        'experience' => $data['experience'] ?? null,
                         'experience_years' => $data['experience_years'] ?? 0,
                         'show_phone' => $data['show_phone'], 'verification_status' => 'unverified',
                     ]);

@@ -85,7 +85,7 @@ class MasterDataController extends Controller
             'id' => $user->id, 'role' => $user->role, 'name' => $user->role === 'center' ? $profile->name : $user->name,
             'avatar' => $user->avatar_url, 'bio' => $profile->bio, 'qualifications' => $profile->headline ?? '',
             'teachingField' => $profile->teaching_field ?? '',
-            'experience' => isset($profile->experience_years) ? $profile->experience_years.' năm kinh nghiệm' : '',
+            'experience' => $profile->experience ?: (isset($profile->experience_years) ? $profile->experience_years.' năm kinh nghiệm' : ''),
             'foundedYear' => $profile->founded_year ?? '', 'verification_status' => $profile->verification_status,
             'verified_at' => $profile->verified_at, 'isPhonePublic' => $user->role === 'center' || $profile->show_phone,
             'phone' => $user->role === 'center' ? $profile->hotline : ($profile->show_phone ? $user->phone : null),
