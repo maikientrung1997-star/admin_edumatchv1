@@ -65,8 +65,11 @@ class MasterDataController extends Controller
     public function verificationStatuses(Request $request)
     {
         $data = $request->validate(['user_ids' => ['required', 'array', 'max:100'], 'user_ids.*' => ['required', 'integer', 'min:1']]);
-        $users = User::with(['teacherProfile:user_id,verification_status,verified_at', 'center:id,owner_user_id,verification_status,verified_at'])
-            ->where('status', 'active')->whereIn('role', ['teacher', 'center'])->whereIn('id', $data['user_ids'])->get(['id', 'role']);
+        $users = User::withTrashed()
+            ->with(['teacherProfile:user_id,verification_status,verified_at', 'center:id,owner_user_id,verification_status,verified_at'])
+            ->whereIn('role', ['teacher', 'center'])
+            ->whereIn('id', $data['user_ids'])
+            ->get(['id', 'role']);
 
         return response()->json(['data' => $users->map(function ($user) {
             $profile = $user->role === 'teacher' ? $user->teacherProfile : $user->center;
