@@ -68,6 +68,10 @@ Route::get('/storage/avatars/{filename}', \App\Http\Controllers\Api\PublicAvatar
     ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
     ->name('storage.avatars');
 
+Route::get('/storage/covers/{filename}', \App\Http\Controllers\Api\PublicCoverController::class)
+    ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
+    ->name('storage.covers');
+
 Route::get('/login', function () {
     return view('login');
 })->name('login.index');
