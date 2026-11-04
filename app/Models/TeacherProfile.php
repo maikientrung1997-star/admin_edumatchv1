@@ -19,6 +19,7 @@ class TeacherProfile extends Model
         'headline',
         'teaching_field',
         'bio',
+        'experience',
         'experience_years',
         'province_id',
         'district_id',

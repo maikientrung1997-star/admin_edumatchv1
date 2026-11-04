@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'avatar_path',
+        'cover_image_path',
         'status',
         'email_verified_at',
         'phone_verified_at',
@@ -50,7 +51,7 @@ class User extends Authenticatable
         'google_id',
     ];
 
-    protected $appends = ['avatar_url'];
+    protected $appends = ['avatar_url', 'cover_image_url'];
 
     public function getAvatarUrlAttribute(): ?string
     {
@@ -58,6 +59,21 @@ class User extends Authenticatable
         if (! $path) {
             return null;
         }
+        if (preg_match('#^https?://#', $path)) {
+            return $path;
+        }
+
+        return url('/storage/'.preg_replace('#^/?storage/#', '', $path));
+    }
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        $path = $this->cover_image_path;
+
+        if (! $path) {
+            return null;
+        }
+
         if (preg_match('#^https?://#', $path)) {
             return $path;
         }

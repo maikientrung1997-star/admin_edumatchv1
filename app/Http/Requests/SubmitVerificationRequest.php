@@ -18,13 +18,13 @@ class SubmitVerificationRequest extends FormRequest
         $types = config('verification.'.$this->user()->role.'_types', []);
 
         return [
-            'documents' => ['required', 'array', 'min:'.($isCenter ? 1 : 3), 'max:'.config('verification.max_documents')],
+            'documents' => ['required', 'array', 'min:'.($isCenter ? 1 : 3)],
             'documents.*' => ['array:document_type,document_name,issuing_authority,issued_year,file'],
             'documents.*.document_type' => ['required', Rule::in($isCenter ? ['business_registration'] : array_keys($types))],
             'documents.*.document_name' => [$isCenter ? 'nullable' : 'required', 'string', 'max:200'],
             'documents.*.issuing_authority' => [$isCenter ? 'nullable' : 'required', 'string', 'max:200'],
-            'documents.*.issued_year' => [$isCenter ? 'nullable' : 'integer', 'min:1900', 'max:'.now()->year],
-            'documents.*.file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:'.config('verification.max_file_kb')],
+            'documents.*.issued_year' => [$isCenter ? 'nullable' : 'required', 'integer', 'min:1900', 'max:'.now()->year],
+            'documents.*.file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf'],
             'center_details' => [$isCenter ? 'required' : 'nullable', 'array:center_name,training_field,training_address,company_name,company_address,tax_code,representative_name,representative_phone'],
             'center_details.center_name' => [$isCenter ? 'required' : 'nullable', 'string', 'max:160'],
             'center_details.training_field' => [$isCenter ? 'required' : 'nullable', 'string', 'max:200'],
@@ -56,13 +56,6 @@ class SubmitVerificationRequest extends FormRequest
             if ($this->user()->role === 'teacher' && ! array_diff($types, ['identity_front', 'identity_back'])) {
                 $validator->errors()->add('documents', 'Vui lòng nộp ít nhất một bằng cấp hoặc chứng chỉ chuyên môn.');
             }
-            $bytes = 0;
-            foreach ($this->file('documents', []) as $document) {
-                $bytes += ($document['file'] ?? null)?->getSize() ?? 0;
-            }
-            if ($bytes > 7 * 1024 * 1024) {
-                $validator->errors()->add('documents', 'Tổng dung lượng hồ sơ tối đa 7 MB.');
-            }
         });
     }
 
@@ -70,7 +63,6 @@ class SubmitVerificationRequest extends FormRequest
     {
         return [
             'documents.required' => 'Vui lòng đính kèm hồ sơ xác minh.',
-            'documents.*.file.max' => 'Mỗi tài liệu tối đa 2 MB.',
             'documents.*.file.mimes' => 'Chỉ chấp nhận ảnh JPG/PNG hoặc PDF.',
             'documents.*.issued_year.max' => 'Năm cấp không được nằm trong tương lai.',
         ];

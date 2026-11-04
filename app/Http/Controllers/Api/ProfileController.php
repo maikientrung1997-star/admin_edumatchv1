@@ -78,4 +78,35 @@ class ProfileController extends Controller
             'user' => $user->load(self::RELATIONS),
         ]);
     }
+
+    public function cover(Request $request)
+    {
+        $request->validate([
+            'cover_image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp'],
+        ]);
+
+        $path = $request->file('cover_image')->store('covers', 'public');
+        abort_unless($path, 500, 'Không thể lưu ảnh bìa.');
+
+        $user = $request->user();
+        $oldPath = $user->cover_image_path;
+
+        try {
+            $user->update(['cover_image_path' => $path]);
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($path);
+
+            throw $exception;
+        }
+
+        if (is_string($oldPath) && str_starts_with($oldPath, 'covers/')) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return response()->json([
+            'message' => 'Đã cập nhật ảnh bìa.',
+            'cover_image_url' => $user->cover_image_url,
+            'user' => $user->fresh()->load(self::RELATIONS),
+        ]);
+    }
 }

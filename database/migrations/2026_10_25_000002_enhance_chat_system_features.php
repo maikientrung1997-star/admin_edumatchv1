@@ -9,8 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', fn (Blueprint $table) => $table->unsignedBigInteger('chat_revision')->default(0));
-        DB::statement('ALTER TABLE chat_conversations DROP CHECK chat_conversations_recipient_check');
+        // This migration may be resumed after a previous DDL failure. Avoid failing
+        // when the first statement completed but Laravel did not record the migration.
+        if (! Schema::hasColumn('users', 'chat_revision')) {
+            Schema::table('users', fn (Blueprint $table) => $table->unsignedBigInteger('chat_revision')->default(0));
+        }
+        DB::statement('ALTER TABLE chat_conversations DROP CONSTRAINT chat_conversations_recipient_check');
         Schema::table('chat_conversations', function (Blueprint $table) {
             $table->unsignedBigInteger('student_user_id')->nullable()->change();
             $table->string('type', 20)->default('direct');
@@ -73,7 +77,7 @@ return new class extends Migration
             $table->dropColumn(['metadata', 'client_id', 'revision']);
         });
         Schema::table('chat_participants', fn (Blueprint $table) => $table->dropColumn(['notes', 'role', 'last_read_message_id']));
-        DB::statement('ALTER TABLE chat_conversations DROP CHECK chat_conversations_type_check');
+        DB::statement('ALTER TABLE chat_conversations DROP CONSTRAINT chat_conversations_type_check');
         Schema::table('chat_conversations', function (Blueprint $table) {
             $table->dropForeign(['created_by_user_id']);
             $table->dropUnique(['direct_key']);
