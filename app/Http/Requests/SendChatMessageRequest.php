@@ -24,7 +24,9 @@ class SendChatMessageRequest extends FormRequest
     public function rules(): array
     {
         return ['client_id' => ['required', 'uuid'], 'body' => ['nullable', 'string', 'max:4000'],
-            'metadata' => ['nullable', 'array:math,formula,reply_to_id,sticker'], 'metadata.math' => ['sometimes', 'boolean'],
+            'metadata' => ['nullable', 'array:math,formula,reply_to_id,sticker,forwarded,reply_to'], 'metadata.math' => ['sometimes', 'boolean'],
+            'metadata.forwarded' => ['sometimes', 'boolean'],
+            'metadata.reply_to' => ['sometimes', 'array'],
             'metadata.formula' => ['nullable', 'string', 'max:4000'], 'metadata.reply_to_id' => ['nullable', 'integer', 'min:1'],
             'metadata.sticker' => ['nullable', 'array'], 'metadata.sticker.id' => ['nullable', 'string', 'max:50'],
             'metadata.sticker.name' => ['nullable', 'string', 'max:100'], 'metadata.sticker.emoji' => ['nullable', 'string', 'max:50'],

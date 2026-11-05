@@ -226,7 +226,7 @@ class ChatService
                     return $existing->load(ChatData::MESSAGE_RELATIONS);
                 }
                 abort_unless($members->count() === $participants->count() && $members->every(fn ($member) => $member->status === 'active'), 409, 'Có thành viên không còn hoạt động. Không thể gửi tin nhắn.');
-                $metadata = array_intersect_key($data['metadata'] ?? [], array_flip(['math', 'formula', 'reply_to_id', 'sticker']));
+                $metadata = array_intersect_key($data['metadata'] ?? [], array_flip(['math', 'formula', 'reply_to_id', 'sticker', 'forwarded', 'reply_to']));
                 if (! empty($metadata['reply_to_id'])) {
                     abort_unless($conversation->chatMessages()->whereKey($metadata['reply_to_id'])->exists(), 422, 'Tin nhắn trích dẫn không thuộc hội thoại.');
                 }
