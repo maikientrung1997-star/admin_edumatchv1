@@ -65,8 +65,11 @@ class MasterDataController extends Controller
     public function verificationStatuses(Request $request)
     {
         $data = $request->validate(['user_ids' => ['required', 'array', 'max:100'], 'user_ids.*' => ['required', 'integer', 'min:1']]);
-        $users = User::with(['teacherProfile:user_id,verification_status,verified_at', 'center:id,owner_user_id,verification_status,verified_at'])
-            ->where('status', 'active')->whereIn('role', ['teacher', 'center'])->whereIn('id', $data['user_ids'])->get(['id', 'role']);
+        $users = User::withTrashed()
+            ->with(['teacherProfile:user_id,verification_status,verified_at', 'center:id,owner_user_id,verification_status,verified_at'])
+            ->whereIn('role', ['teacher', 'center'])
+            ->whereIn('id', $data['user_ids'])
+            ->get(['id', 'role']);
 
         return response()->json(['data' => $users->map(function ($user) {
             $profile = $user->role === 'teacher' ? $user->teacherProfile : $user->center;
@@ -85,7 +88,7 @@ class MasterDataController extends Controller
             'id' => $user->id, 'role' => $user->role, 'name' => $user->role === 'center' ? $profile->name : $user->name,
             'avatar' => $user->avatar_url, 'bio' => $profile->bio, 'qualifications' => $profile->headline ?? '',
             'teachingField' => $profile->teaching_field ?? '',
-            'experience' => isset($profile->experience_years) ? $profile->experience_years.' năm kinh nghiệm' : '',
+            'experience' => $profile->experience ?: (isset($profile->experience_years) ? $profile->experience_years.' năm kinh nghiệm' : ''),
             'foundedYear' => $profile->founded_year ?? '', 'verification_status' => $profile->verification_status,
             'verified_at' => $profile->verified_at, 'isPhonePublic' => $user->role === 'center' || $profile->show_phone,
             'phone' => $user->role === 'center' ? $profile->hotline : ($profile->show_phone ? $user->phone : null),

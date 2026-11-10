@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'max_file_kb' => 2048,
-    'max_documents' => 8,
+    'max_file_kb' => null,
+    'max_documents' => null,
     'teacher_types' => [
         'degree' => 'Bằng cử nhân / thạc sĩ / tiến sĩ',
         'teaching_certificate' => 'Chứng chỉ nghiệp vụ sư phạm',

@@ -67,12 +67,18 @@ class VerificationService
             $record->update(['status' => $status, 'reviewed_by' => $admin->id, 'reviewed_at' => now(), 'rejection_reason' => $approved ? null : $reason]);
             $profile->update(['verification_status' => $approved ? 'verified' : 'rejected', 'verified_at' => $approved ? now() : null]);
             $record->verificationDocuments()->update(['status' => $status, 'reviewed_by' => $admin->id, 'reviewed_at' => now(), 'admin_note' => $approved ? null : $reason]);
+            $isCenter = (bool) $record->center_id || $owner->role === 'center';
+            $cleanReason = trim((string) $reason);
+            $rejectedTitle = $isCenter ? 'Hồ sơ xác thực chưa được xét duyệt' : 'Hồ sơ xác minh cần bổ sung';
+            $rejectedContent = $isCenter
+                ? 'Hồ sơ chưa được xét duyệt. Lý do: '.$cleanReason.'. Đội ngũ EduMatch sẽ liên hệ trực tiếp qua SĐT để hướng dẫn.'
+                : $reason;
             app(RealtimeNotificationService::class)->send(
                 $owner->id,
                 'verification_result',
-                $approved ? 'Hồ sơ xác minh đã được phê duyệt' : 'Hồ sơ xác minh cần bổ sung',
-                $approved ? 'Hồ sơ của bạn đã được phê duyệt và cấp huy hiệu xác minh.' : $reason,
-                ['request_id' => $record->id, 'status' => $status, 'link' => '/xac-minh'],
+                $approved ? 'Hồ sơ xác minh đã được phê duyệt' : $rejectedTitle,
+                $approved ? 'Hồ sơ của bạn đã được phê duyệt và cấp huy hiệu xác minh.' : $rejectedContent,
+                ['request_id' => $record->id, 'status' => $status, 'rejection_reason' => $approved ? null : $cleanReason, 'link' => '/xac-minh'],
             );
         });
     }

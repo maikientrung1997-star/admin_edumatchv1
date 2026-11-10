@@ -32,6 +32,10 @@ Route::get('/media/avatars/{filename}', \App\Http\Controllers\Api\PublicAvatarCo
     ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
     ->withoutMiddleware('throttle:api')->middleware('throttle:public-avatars');
 
+Route::get('/media/covers/{filename}', \App\Http\Controllers\Api\PublicCoverController::class)
+    ->where('filename', '[A-Za-z0-9][A-Za-z0-9._-]*')
+    ->withoutMiddleware('throttle:api')->middleware('throttle:public-avatars');
+
 Route::get('/administrative-areas', [AdministrativeAreaController::class, 'index']);
 Route::controller(\App\Http\Controllers\Api\MasterDataController::class)->group(function () {
     Route::get('/subjects', 'subjects');
@@ -71,4 +75,5 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function 
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/student/profile', [ProfileController::class, 'update']);
     Route::post('/profile/avatar', [ProfileController::class, 'avatar']);
+    Route::post('/profile/cover', [ProfileController::class, 'cover']);
 });
