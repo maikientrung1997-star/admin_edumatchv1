@@ -45,6 +45,7 @@ Route::controller(\App\Http\Controllers\Api\MasterDataController::class)->group(
     Route::get('/administrative-areas/districts/{province}', 'districts');
     Route::get('/administrative-areas/wards/{parent}', 'wards');
     Route::get('/provider-verifications', 'verificationStatuses');
+    Route::get('/providers', 'providers');
     Route::get('/providers/{user}', 'provider');
 });
 Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function () {
@@ -58,6 +59,7 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class])->group(function 
         Route::get('conversations/{conversation}/messages', 'messages');
         Route::post('conversations/{conversation}/messages', 'send')->middleware('throttle:chat-send');
         Route::post('conversations/{conversation}/read', 'read');
+        Route::post('conversations/{conversation}/avatar', 'updateAvatar')->middleware('throttle:chat-create');
         Route::post('conversations/{conversation}/typing', 'typing')->middleware('throttle:chat-typing');
         Route::get('conversations/{conversation}/media', 'media');
         Route::put('conversations/{conversation}/notes', 'notes');

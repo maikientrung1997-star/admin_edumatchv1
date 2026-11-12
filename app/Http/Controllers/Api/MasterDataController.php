@@ -84,7 +84,45 @@ class MasterDataController extends Controller
         $profile = $user->role === 'teacher' ? $user->teacherProfile : $user->center;
         abort_unless($profile, 404);
 
-        return response()->json(['data' => [
+        return response()->json(['data' => $this->providerData($user, $profile)]);
+    }
+
+    /**
+     * Danh sách công khai mọi giáo viên / trung tâm đang hoạt động, kể cả khi chưa đăng khóa học,
+     * để trang chủ tìm được hồ sơ theo tên. Không trả email, ngày sinh; số điện thoại theo lựa chọn công khai.
+     */
+    public function providers(Request $request)
+    {
+        $data = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:500'],
+        ]);
+        $search = trim((string) ($data['q'] ?? ''));
+
+        $users = User::query()
+            ->where('status', 'active')
+            ->whereIn('role', ['teacher', 'center'])
+            ->where(fn ($query) => $query
+                ->where(fn ($teacher) => $teacher->where('role', 'teacher')->whereHas('teacherProfile'))
+                ->orWhere(fn ($center) => $center->where('role', 'center')->whereHas('center')))
+            ->when($search !== '', fn ($query) => $query->where(fn ($match) => $match
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhereHas('center', fn ($center) => $center->where('name', 'like', '%'.$search.'%'))))
+            ->with(['teacherProfile.province:id,name', 'center.province:id,name'])
+            ->latest('id')
+            ->limit($data['limit'] ?? 300)
+            ->get();
+
+        return response()->json(['data' => $users->map(function (User $user) {
+            $profile = $user->role === 'teacher' ? $user->teacherProfile : $user->center;
+
+            return $this->providerData($user, $profile) + ['province' => $profile->province?->name ?? ''];
+        })->values()]);
+    }
+
+    private function providerData(User $user, $profile): array
+    {
+        return [
             'id' => $user->id, 'role' => $user->role, 'name' => $user->role === 'center' ? $profile->name : $user->name,
             'avatar' => $user->avatar_url, 'bio' => $profile->bio, 'qualifications' => $profile->headline ?? '',
             'teachingField' => $profile->teaching_field ?? '',
@@ -92,6 +130,6 @@ class MasterDataController extends Controller
             'foundedYear' => $profile->founded_year ?? '', 'verification_status' => $profile->verification_status,
             'verified_at' => $profile->verified_at, 'isPhonePublic' => $user->role === 'center' || $profile->show_phone,
             'phone' => $user->role === 'center' ? $profile->hotline : ($profile->show_phone ? $user->phone : null),
-        ]]);
+        ];
     }
 }

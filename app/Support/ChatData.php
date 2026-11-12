@@ -71,7 +71,7 @@ class ChatData
         $last = $conversation->lastMessage;
         $data = ['id' => $conversation->id, 'type' => $conversation->type, 'title' => $conversation->title,
             'name' => $conversation->type === 'group' ? $conversation->title : ($partner['name'] ?? 'Hội thoại EduMatch'),
-            'avatar_url' => $conversation->type === 'group' ? null : ($partner['avatar_url'] ?? null), 'partner' => $partner,
+            'avatar_url' => $conversation->type === 'group' ? $conversation->avatar_url : ($partner['avatar_url'] ?? null), 'partner' => $partner,
             'member_count' => $conversation->chatParticipants->count(), 'revision' => $conversation->revision,
             'last_message_id' => $conversation->last_message_id, 'last_message_at' => $conversation->last_message_at?->toIso8601String(),
             'preview' => $last ? Str::limit($last->body ?: ($last->message_type === 'image' ? 'Đã gửi ảnh' : ($last->metadata['sticker'] ?? false ? 'Đã gửi nhãn dán' : ($last->metadata['math'] ?? false ? 'Đã gửi công thức' : 'Đã gửi tệp'))), 160) : 'Chưa có tin nhắn',

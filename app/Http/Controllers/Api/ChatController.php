@@ -42,11 +42,39 @@ class ChatController extends Controller
 
     public function group(Request $request)
     {
-        $data = $request->validate(['title' => ['required', 'string', 'max:150'], 'member_ids' => ['required', 'array', 'min:1', 'max:19'],
-            'member_ids.*' => ['required', 'integer', 'min:1', 'distinct']]);
-        $conversation = $this->chat->createGroup($request->user(), $data['title'], $data['member_ids']);
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:150'],
+            'member_ids' => ['required', 'array', 'min:1'],
+            'member_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:10240'],
+        ], [
+            'avatar.uploaded' => 'Tải ảnh đại diện thất bại. Kích thước ảnh có thể quá lớn hoặc định dạng không hỗ trợ.',
+            'avatar.image' => 'Tệp được chọn phải là hình ảnh hợp lệ.',
+            'avatar.mimes' => 'Ảnh đại diện phải có định dạng: jpeg, jpg, png, webp hoặc gif.',
+            'avatar.max' => 'Kích thước ảnh đại diện không được vượt quá 10MB.',
+        ]);
+        $avatarPath = $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null;
+        $conversation = $this->chat->createGroup($request->user(), $data['title'], $data['member_ids'], $avatarPath);
 
         return response()->json(['data' => $this->chat->detail($request->user(), $conversation)], 201);
+    }
+
+    public function updateAvatar(Request $request, ChatConversation $conversation)
+    {
+        $this->chat->authorize($request->user(), $conversation);
+        abort_unless($conversation->type === 'group', 422, 'Chỉ có thể đổi ảnh đại diện cho nhóm.');
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:10240'],
+        ], [
+            'avatar.uploaded' => 'Tải ảnh đại diện thất bại. Kích thước ảnh có thể quá lớn hoặc định dạng không hỗ trợ.',
+            'avatar.image' => 'Tệp được chọn phải là hình ảnh hợp lệ.',
+            'avatar.mimes' => 'Ảnh đại diện phải có định dạng: jpeg, jpg, png, webp hoặc gif.',
+            'avatar.max' => 'Kích thước ảnh đại diện không được vượt quá 10MB.',
+        ]);
+
+        $conversation = $this->chat->updateGroupAvatar($request->user(), $conversation, $request->file('avatar'));
+
+        return response()->json(['data' => $this->chat->detail($request->user(), $conversation)]);
     }
 
     public function show(Request $request, ChatConversation $conversation)

@@ -145,17 +145,43 @@ class ChatService
         }, 3);
     }
 
-    public function createGroup(User $user, string $title, array $memberIds): ChatConversation
+    public function createGroup(User $user, string $title, array $memberIds, ?string $avatarPath = null): ChatConversation
     {
         $ids = array_unique([$user->id, ...$memberIds]);
 
-        return DB::transaction(function () use ($user, $title, $ids) {
+        return DB::transaction(function () use ($user, $title, $ids, $avatarPath) {
             $members = User::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
             abort_unless(count($ids) >= 2 && $members->count() === count($ids) && $members->every(fn ($u) => $u->status === 'active'), 422, 'Thành viên nhóm không hợp lệ.');
-            $conversation = ChatConversation::create(['type' => 'group', 'title' => $title, 'created_by_user_id' => $user->id]);
+            $conversation = ChatConversation::create([
+                'type' => 'group',
+                'title' => $title,
+                'avatar_path' => $avatarPath,
+                'created_by_user_id' => $user->id,
+            ]);
             foreach ($members as $member) {
                 $conversation->chatParticipants()->create(['user_id' => $member->id, 'joined_at' => now(), 'role' => $member->id === $user->id ? 'admin' : 'member']);
             }
+            $this->inboxEvents($conversation, $members);
+
+            return $conversation;
+        }, 3);
+    }
+
+    public function updateGroupAvatar(User $user, ChatConversation $conversation, $avatarFile): ChatConversation
+    {
+        return DB::transaction(function () use ($user, $conversation, $avatarFile) {
+            [$conversation, $participants, $members] = $this->lockConversation($user, $conversation);
+            abort_unless($conversation->type === 'group', 422, 'Chỉ có thể đổi ảnh đại diện cho nhóm.');
+
+            $oldPath = $conversation->avatar_path;
+            $path = $avatarFile->store('avatars', 'public');
+
+            $conversation->update(['avatar_path' => $path]);
+
+            if (is_string($oldPath) && str_starts_with($oldPath, 'avatars/')) {
+                Storage::disk('public')->delete($oldPath);
+            }
+
             $this->inboxEvents($conversation, $members);
 
             return $conversation;

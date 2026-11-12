@@ -321,6 +321,28 @@ class AdminPhase2Test extends IsolatedMysqlTestCase
         $this->getJson('/api/providers/'.$user->id)->assertNotFound();
     }
 
+    public function test_provider_list_includes_accounts_without_courses_and_hides_private_fields(): void
+    {
+        $teacher = $this->account();
+        $teacher->update(['name' => 'Mai Kiên Trung', 'phone' => '+84981234567']);
+        $center = $this->account('center');
+        $this->account('student');
+        $blocked = $this->account();
+        $blocked->update(['status' => 'blocked']);
+
+        $response = $this->getJson('/api/providers')->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($teacher->id));
+        $this->assertTrue($ids->contains($center->id));
+        $this->assertFalse($ids->contains($blocked->id));
+        $this->assertCount(2, $ids);
+        $response->assertJsonMissingPath('data.0.email')->assertJsonMissingPath('data.0.date_of_birth');
+        $this->assertNull(collect($response->json('data'))->firstWhere('id', $teacher->id)['phone']);
+
+        $this->getJson('/api/providers?q='.urlencode('kiên trung'))->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $teacher->id);
+        $this->getJson('/api/providers?q='.urlencode('thử nghiệm'))->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $center->id);
+    }
+
     public function test_master_data_seeder_is_repeatable_without_overwriting_admin_edits(): void
     {
         $this->seed(Phase2MasterDataSeeder::class);
